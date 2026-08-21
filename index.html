@@ -164,7 +164,7 @@
     font-family:'Jua'; font-size:14px; border:none; border-radius:14px;
     padding:9px 14px; background:#EDE9F7; color:var(--ink); cursor:pointer;
   }
-  .diff-btn.active{background:var(--grape); color:var(--white);}
+  .diff-btn.active{background:var(--sky); color:var(--white);}
   .match-grid{
     display:grid; gap:12px;
     width:100%; max-width:400px;
@@ -172,11 +172,11 @@
   .match-card{
     aspect-ratio:1/1;
     border-radius:16px;
-    background:var(--grape);
+    background:var(--sky);
     display:flex; align-items:center; justify-content:center;
     font-size:32px;
     cursor:pointer;
-    box-shadow:0 4px 0 #7c53b3;
+    box-shadow:0 4px 0 #3a9fc4;
   }
   .match-card.flipped, .match-card.solved{background:var(--white); box-shadow:0 4px 0 #e3ddf2;}
 
@@ -239,32 +239,58 @@
     width:44px; height:36px; background:#EDE9F7; color:var(--ink); cursor:pointer;
   }
   .size-btn.active{background:var(--ink); color:var(--white);}
-  #puzzlePreview{
-    width:100px; height:100px; background-size:cover; background-position:center;
-    border-radius:16px; box-shadow:0 3px 0 #e3ddf2; margin:0 auto 14px;
+  #puzzleArea{
+    position:relative; width:100%; max-width:460px; aspect-ratio:1/1; margin:0 auto;
+    background:#F2EEFB; border-radius:20px;
+    box-shadow:inset 0 0 0 2px #E3DDF2;
+    overflow:hidden;
   }
-  #puzzleGrid{
-    display:grid; gap:4px;
-    width:100%; max-width:400px; margin:0 auto;
+  .puzzle-slot{
+    position:absolute; box-sizing:border-box;
+    border:3px dashed #C9BEEA; border-radius:6px;
   }
-  .puzzle-tile{
-    aspect-ratio:1/1; border-radius:6px; cursor:pointer;
-    background-repeat:no-repeat;
-    box-shadow:inset 0 0 0 2px #fff;
+  .puzzle-piece{
+    position:absolute; box-sizing:border-box;
+    border-radius:6px; background-repeat:no-repeat;
+    border:2px solid rgba(255,255,255,0.85);
+    box-shadow:0 3px 8px rgba(0,0,0,0.25);
+    cursor:grab; touch-action:none; z-index:5;
   }
-  .puzzle-tile.selected{box-shadow:inset 0 0 0 4px var(--ink);}
+  .puzzle-piece.dragging{ z-index:50; box-shadow:0 10px 18px rgba(0,0,0,0.35); cursor:grabbing; }
+  .puzzle-piece.placed{ border-color:transparent; box-shadow:none; cursor:default; z-index:1; }
+  #puzzlePreviewMini{
+    position:absolute; top:8px; right:8px; width:56px; height:56px;
+    background-size:cover; background-position:center;
+    border-radius:10px; border:2px solid var(--white);
+    box-shadow:0 3px 8px rgba(0,0,0,0.3); z-index:60;
+  }
 
   /* ---------- Piano game ---------- */
-  .octave-row{display:flex; align-items:center; gap:14px; justify-content:center; margin-bottom:20px;}
-  #octaveLabel{font-family:'Jua'; font-size:16px; min-width:110px; text-align:center;}
-  .piano-row{display:flex; gap:8px; justify-content:center; flex-wrap:wrap;}
-  .piano-key{
-    width:52px; height:150px; border:none; border-radius:0 0 14px 14px;
-    color:var(--white); font-family:'Jua'; font-size:16px;
-    display:flex; align-items:flex-end; justify-content:center; padding-bottom:14px;
-    cursor:pointer; box-shadow:0 6px 0 rgba(0,0,0,0.2);
+  #pianoFrame{
+    background:#2B2140; border-radius:16px; padding:10px 8px;
+    box-shadow:0 6px 0 #17122a; overflow-x:auto;
+  }
+  .piano-keys-wrap{position:relative; height:170px; display:inline-block;}
+  .white-keys{display:flex; height:100%;}
+  .white-key{
+    width:34px; height:170px; background:var(--white); border:none;
+    border-right:1px solid #ddd; border-radius:0 0 8px 8px;
+    box-shadow:0 5px 0 #d8d8d8;
+    display:flex; align-items:flex-end; justify-content:center; padding-bottom:8px;
+    font-family:'Jua'; font-size:12px; color:#B7A9D6;
+    cursor:pointer; flex-shrink:0; position:relative; z-index:1;
     transition:transform .05s ease;
   }
+  .white-key:first-child{border-radius:0 0 0 8px;}
+  .white-key:last-child{border-right:none; border-radius:0 0 8px 0;}
+  .white-key:active{transform:translateY(4px); background:#F3EEFF;}
+  .black-key{
+    position:absolute; top:0; width:22px; height:104px;
+    background:#241B38; border-radius:0 0 6px 6px;
+    box-shadow:0 4px 0 #120d1f;
+    z-index:2; cursor:pointer; transition:transform .05s ease;
+  }
+  .black-key:active{transform:translateY(3px); background:#39294F;}
   .piano-key:active{transform:translateY(5px) scaleY(0.97); box-shadow:0 1px 0 rgba(0,0,0,0.2);}
 
   /* ---------- Celebration ---------- */
@@ -419,8 +445,9 @@
     <div class="stage" style="padding:14px;">
       <div class="scene-row" id="sceneRow"></div>
       <div class="size-row" id="sizeRow"></div>
-      <div id="puzzlePreview"></div>
-      <div id="puzzleGrid"></div>
+      <div id="puzzleArea">
+        <div id="puzzlePreviewMini"></div>
+      </div>
     </div>
   </section>
 
@@ -432,12 +459,12 @@
       <span></span>
     </div>
     <div class="stage" style="padding:20px 14px;">
-      <div class="octave-row">
-        <button class="arrow-btn" id="octaveDownBtn" onclick="changeOctave(-1)">◀</button>
-        <div id="octaveLabel">보통 옥타브</div>
-        <button class="arrow-btn" id="octaveUpBtn" onclick="changeOctave(1)">▶</button>
+      <div id="pianoFrame">
+        <div class="piano-keys-wrap">
+          <div class="white-keys" id="whiteKeys"></div>
+          <div id="blackKeys"></div>
+        </div>
       </div>
-      <div class="piano-row" id="pianoRow"></div>
     </div>
   </section>
 
@@ -807,7 +834,7 @@ const maskCanvas = document.createElement('canvas');
 maskCanvas.width = TW; maskCanvas.height = TH;
 const mCtx = maskCanvas.getContext('2d');
 
-let traceState = { cat:'자음', idx:0, letter:'ㄱ', outside:false, drawing:false, color:'#9B72CF' };
+let traceState = { cat:'자음', idx:0, letter:'ㄱ', outside:false, drawing:false, color:'#9B72CF', pointCount:0, done:false };
 let maskData = null;
 
 function fontStringFor(letter){
@@ -858,6 +885,8 @@ function loadTraceLetter(){
   buildMask(traceState.letter);
   drawGuideVisible(traceState.letter);
   traceState.outside = false;
+  traceState.pointCount = 0;
+  traceState.done = false;
   document.getElementById('traceLabel').textContent = (traceState.idx+1) + ' / ' + LETTER_SETS[traceState.cat].length;
   say('점선을 따라 예쁘게 그려볼까?');
 }
@@ -871,15 +900,23 @@ function changeLetter(delta){
 function retryTrace(){
   drawGuideVisible(traceState.letter);
   traceState.outside = false;
+  traceState.pointCount = 0;
+  traceState.done = false;
   say('다시 한번 그려보자!');
 }
 
 function checkTrace(){
-  if(!traceState.outside){
+  evaluateTrace(true);
+}
+
+function evaluateTrace(manual){
+  if(traceState.done) return;
+  if(!traceState.outside && traceState.pointCount >= 25){
+    traceState.done = true;
     say('참 잘했어요! 테두리 안에 예쁘게 썼어요 🎉');
     addStar();
     setTimeout(()=>changeLetter(1), 800);
-  } else {
+  } else if(manual){
     say('테두리 안에 그려볼까? 다시 해보자!');
     setTimeout(retryTrace, 900);
   }
@@ -889,6 +926,7 @@ function traceGetPos(e){ return getPos(e, traceCanvas); }
 
 function checkPoint(p){
   if(!isInsideMask(p.x, p.y)) traceState.outside = true;
+  traceState.pointCount++;
 }
 
 function traceStart(e){
@@ -911,7 +949,11 @@ function traceMove(e){
   checkPoint(p);
   e.preventDefault();
 }
-function traceEnd(){ traceState.drawing = false; }
+function traceEnd(){
+  if(!traceState.drawing) return;
+  traceState.drawing = false;
+  evaluateTrace(false);
+}
 
 traceCanvas.addEventListener('mousedown', traceStart);
 traceCanvas.addEventListener('mousemove', traceMove);
@@ -965,7 +1007,7 @@ const pCanvas = document.createElement('canvas');
 pCanvas.width = PS; pCanvas.height = PS;
 const pCtx = pCanvas.getContext('2d');
 
-let puzzleState = { sceneIdx:0, n:3, order:[], selected:-1, sceneUrl:'' };
+let puzzleState = { sceneIdx:0, n:3, sceneUrl:'', pieceSizePct:0, offsetPct:0, filled:[], filledCount:0 };
 
 function buildScene(scene){
   const grad = pCtx.createLinearGradient(0,0,0,PS);
@@ -992,56 +1034,141 @@ function buildScene(scene){
 function startPuzzle(){
   const scene = PUZZLE_SCENES[puzzleState.sceneIdx];
   puzzleState.sceneUrl = buildScene(scene);
-  document.getElementById('puzzlePreview').style.backgroundImage = `url(${puzzleState.sceneUrl})`;
+  document.getElementById('puzzlePreviewMini').style.backgroundImage = `url(${puzzleState.sceneUrl})`;
 
   const n = puzzleState.n;
-  let order = [...Array(n*n).keys()];
-  if(n > 1){
-    do{ shuffle(order); } while(order.every((v,i)=>v===i));
+  const area = document.getElementById('puzzleArea');
+  area.querySelectorAll('.puzzle-slot, .puzzle-piece').forEach(el=>el.remove());
+
+  const slotAreaPct = 56;
+  const offsetPct = (100 - slotAreaPct) / 2;
+  const pieceSizePct = slotAreaPct / n;
+
+  puzzleState.pieceSizePct = pieceSizePct;
+  puzzleState.offsetPct = offsetPct;
+  puzzleState.filled = new Array(n*n).fill(false);
+  puzzleState.filledCount = 0;
+
+  for(let row=0; row<n; row++){
+    for(let col=0; col<n; col++){
+      const slot = document.createElement('div');
+      slot.className = 'puzzle-slot';
+      slot.style.left = (offsetPct + col*pieceSizePct) + '%';
+      slot.style.top = (offsetPct + row*pieceSizePct) + '%';
+      slot.style.width = pieceSizePct + '%';
+      slot.style.height = pieceSizePct + '%';
+      area.appendChild(slot);
+    }
   }
-  puzzleState.order = order;
-  puzzleState.selected = -1;
-  renderPuzzleGrid();
-  say('조각을 두 개씩 눌러서 그림을 맞춰보자!');
-}
 
-function renderPuzzleGrid(){
-  const n = puzzleState.n;
-  const grid = document.getElementById('puzzleGrid');
-  grid.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
-  grid.innerHTML = '';
-  puzzleState.order.forEach((homeId, pos)=>{
-    const col = homeId % n;
-    const row = Math.floor(homeId / n);
-    const div = document.createElement('div');
-    div.className = 'puzzle-tile' + (pos === puzzleState.selected ? ' selected' : '');
-    div.style.backgroundImage = `url(${puzzleState.sceneUrl})`;
-    div.style.backgroundSize = `${n*100}% ${n*100}%`;
-    div.style.backgroundPosition = n > 1
+  const homeIds = shuffle([...Array(n*n).keys()]);
+  homeIds.forEach(homeId=>{
+    const col = homeId % n, row = Math.floor(homeId / n);
+    const piece = document.createElement('div');
+    piece.className = 'puzzle-piece';
+    piece.dataset.home = homeId;
+    piece.style.width = pieceSizePct + '%';
+    piece.style.height = pieceSizePct + '%';
+    piece.style.backgroundImage = `url(${puzzleState.sceneUrl})`;
+    piece.style.backgroundSize = `${n*100}% ${n*100}%`;
+    piece.style.backgroundPosition = n > 1
       ? `${col/(n-1)*100}% ${row/(n-1)*100}%`
       : '0 0';
-    div.onclick = ()=>tapPuzzleTile(pos);
-    grid.appendChild(div);
+
+    const pos = randomScatterPos(pieceSizePct, offsetPct, slotAreaPct);
+    piece.style.left = pos.left + '%';
+    piece.style.top = pos.top + '%';
+    piece.dataset.scatterLeft = pos.left;
+    piece.dataset.scatterTop = pos.top;
+
+    attachDrag(piece);
+    area.appendChild(piece);
+  });
+
+  say('조각을 가운데 네모 칸으로 끌어다 놓아보자!');
+}
+
+function randomScatterPos(sizePct, offsetPct, slotAreaPct){
+  const maxPos = 100 - sizePct;
+  let left, top, tries = 0;
+  do{
+    left = Math.random() * maxPos;
+    top = Math.random() * maxPos;
+    tries++;
+  } while(
+    tries < 25 &&
+    left + sizePct > offsetPct && left < offsetPct + slotAreaPct &&
+    top + sizePct > offsetPct && top < offsetPct + slotAreaPct
+  );
+  return { left, top };
+}
+
+function attachDrag(piece){
+  let dragOffsetX = 0, dragOffsetY = 0, areaRect = null;
+
+  piece.addEventListener('pointerdown', (e)=>{
+    if(piece.classList.contains('placed')) return;
+    piece.setPointerCapture(e.pointerId);
+    piece.classList.add('dragging');
+    areaRect = document.getElementById('puzzleArea').getBoundingClientRect();
+    const pieceRect = piece.getBoundingClientRect();
+    dragOffsetX = e.clientX - pieceRect.left;
+    dragOffsetY = e.clientY - pieceRect.top;
+  });
+
+  piece.addEventListener('pointermove', (e)=>{
+    if(!piece.classList.contains('dragging')) return;
+    const leftPx = e.clientX - areaRect.left - dragOffsetX;
+    const topPx = e.clientY - areaRect.top - dragOffsetY;
+    piece.style.left = (leftPx / areaRect.width * 100) + '%';
+    piece.style.top = (topPx / areaRect.height * 100) + '%';
+  });
+
+  piece.addEventListener('pointerup', ()=>{
+    if(!piece.classList.contains('dragging')) return;
+    piece.classList.remove('dragging');
+    handleDrop(piece);
   });
 }
 
-function tapPuzzleTile(pos){
-  if(puzzleState.selected === -1){
-    puzzleState.selected = pos;
-  } else if(puzzleState.selected === pos){
-    puzzleState.selected = -1;
-  } else {
-    const o = puzzleState.order;
-    const s = puzzleState.selected;
-    [o[s], o[pos]] = [o[pos], o[s]];
-    puzzleState.selected = -1;
-    if(o.every((v,i)=>v===i)){
-      say('완성했어요! 참 잘했어요 🎉');
+function handleDrop(piece){
+  const n = puzzleState.n;
+  const pieceSizePct = puzzleState.pieceSizePct;
+  const offsetPct = puzzleState.offsetPct;
+  const left = parseFloat(piece.style.left);
+  const top = parseFloat(piece.style.top);
+  const centerX = left + pieceSizePct/2;
+  const centerY = top + pieceSizePct/2;
+
+  const relX = centerX - offsetPct;
+  const relY = centerY - offsetPct;
+  const withinArea = relX >= 0 && relX <= pieceSizePct*n && relY >= 0 && relY <= pieceSizePct*n;
+
+  if(withinArea){
+    const col = Math.floor(relX / pieceSizePct);
+    const row = Math.floor(relY / pieceSizePct);
+    const slotIndex = row*n + col;
+    const homeId = Number(piece.dataset.home);
+
+    if(slotIndex === homeId && !puzzleState.filled[slotIndex]){
+      piece.style.left = (offsetPct + col*pieceSizePct) + '%';
+      piece.style.top = (offsetPct + row*pieceSizePct) + '%';
+      piece.classList.add('placed');
+      puzzleState.filled[slotIndex] = true;
+      puzzleState.filledCount++;
       addStar();
-      setTimeout(()=>burstConfetti(20), 150);
+      if(puzzleState.filledCount === n*n){
+        say('완성했어요! 참 잘했어요 🎉');
+        setTimeout(()=>burstConfetti(24), 150);
+      } else {
+        say('딱 맞았어요! 다음 조각도 찾아볼까?');
+      }
+      return;
     }
   }
-  renderPuzzleGrid();
+
+  piece.style.left = piece.dataset.scatterLeft + '%';
+  piece.style.top = piece.dataset.scatterTop + '%';
 }
 
 const sceneRow = document.getElementById('sceneRow');
@@ -1081,24 +1208,14 @@ function ensureAudio(){
   if(audioCtx.state === 'suspended') audioCtx.resume();
 }
 
-// 기준: C4 = 261.6256Hz. octave 4가 기본(가운데) 옥타브.
-const NOTES = [
-  {label:'도', semi:0,  color:'#FF6B6B'},
-  {label:'레', semi:2,  color:'#FF9F45'},
-  {label:'미', semi:4,  color:'#FFD34D'},
-  {label:'파', semi:5,  color:'#6BCB77'},
-  {label:'솔', semi:7,  color:'#4DD0E1'},
-  {label:'라', semi:9,  color:'#4D96FF'},
-  {label:'시', semi:11, color:'#9B72CF'},
-  {label:'도', semi:12, color:'#FF7AC6'}
-];
+// 기준: C4 = 261.6256Hz
+function noteFreq(semi, octave){
+  return 261.6256 * Math.pow(2, semi/12 + (octave - 4));
+}
 
-let pianoState = { octave:4 };
-const OCTAVE_LABELS = { 3:'낮은 옥타브 🐢', 4:'보통 옥타브 🎵', 5:'높은 옥타브 🐦' };
-
-function playNote(semi){
+function playNote(semi, octave){
   ensureAudio();
-  const freq = 261.6256 * Math.pow(2, semi/12 + (pianoState.octave - 4));
+  const freq = noteFreq(semi, octave);
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
   osc.type = 'triangle';
@@ -1113,34 +1230,46 @@ function playNote(semi){
   osc.stop(t + 0.75);
 }
 
-function updateOctaveUI(){
-  document.getElementById('octaveLabel').textContent = OCTAVE_LABELS[pianoState.octave];
-  document.getElementById('octaveDownBtn').disabled = pianoState.octave <= 3;
-  document.getElementById('octaveUpBtn').disabled = pianoState.octave >= 5;
-}
+// 흰 건반: 도(0) 레(2) 미(4) 파(5) 솔(7) 라(9) 시(11) - 옥타브당 7개
+const WHITE_STEPS = [
+  {label:'도', semi:0}, {label:'레', semi:2}, {label:'미', semi:4}, {label:'파', semi:5},
+  {label:'솔', semi:7}, {label:'라', semi:9}, {label:'시', semi:11}
+];
+const PIANO_OCTAVES = [3, 4, 5]; // 저음도 ~ 고음도, 3옥타브
 
-function changeOctave(delta){
-  const next = pianoState.octave + delta;
-  if(next < 3 || next > 5) return;
-  pianoState.octave = next;
-  updateOctaveUI();
-  say('옥타브를 바꿨어요! 소리를 들어볼까?');
-}
+const WHITE_KEY_WIDTH = 34;
+const BLACK_KEY_WIDTH = 22;
 
-const pianoRow = document.getElementById('pianoRow');
-NOTES.forEach(note=>{
-  const key = document.createElement('button');
-  key.className = 'piano-key';
-  key.style.background = note.color;
-  key.textContent = note.label;
-  key.onclick = ()=>{
-    playNote(note.semi);
-    key.style.transform = 'translateY(5px) scaleY(0.97)';
-    setTimeout(()=>{ key.style.transform = ''; }, 120);
-  };
-  pianoRow.appendChild(key);
+const whiteKeysEl = document.getElementById('whiteKeys');
+const blackKeysEl = document.getElementById('blackKeys');
+
+let whiteIndex = 0;
+PIANO_OCTAVES.forEach(oct=>{
+  WHITE_STEPS.forEach(step=>{
+    const key = document.createElement('button');
+    key.className = 'white-key';
+    key.textContent = step.label;
+    key.onclick = ()=>{ playNote(step.semi, oct); };
+    whiteKeysEl.appendChild(key);
+
+    if(step.label !== '미' && step.label !== '시'){
+      const blackKey = document.createElement('div');
+      blackKey.className = 'black-key';
+      blackKey.style.left = ((whiteIndex + 1) * WHITE_KEY_WIDTH - BLACK_KEY_WIDTH / 2) + 'px';
+      blackKey.onclick = (e)=>{ e.stopPropagation(); playNote(step.semi + 1, oct); };
+      blackKeysEl.appendChild(blackKey);
+    }
+    whiteIndex++;
+  });
 });
-updateOctaveUI();
+
+// 마지막 마무리 고음 도 (한 옥타브 위)
+const lastOct = PIANO_OCTAVES[PIANO_OCTAVES.length - 1] + 1;
+const finalKey = document.createElement('button');
+finalKey.className = 'white-key';
+finalKey.textContent = '도';
+finalKey.onclick = ()=>{ playNote(0, lastOct); };
+whiteKeysEl.appendChild(finalKey);
 
 </script>
 </body>
