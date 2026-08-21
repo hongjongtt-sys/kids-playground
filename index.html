@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>동물 친구들의 놀이터</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky:#5EC4E8;
+    --sun:#FFD34D;
+    --coral:#FF7A8A;
+    --grass:#79D96A;
+    --grape:#9B6FD1;
+    --teal:#3FBFAE;
+    --indigo:#5B6FEE;
+    --rose:#FF6F91;
+    --cream:#FFF8EC;
+    --ink:#3E3157;
+    --white:#FFFFFF;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none;}
+  html,body{margin:0; padding:0; height:100%; overscroll-behavior:none;}
+  body{
+    font-family:'Gowun Dodum', sans-serif;
+    background:
+      radial-gradient(circle at 15% 10%, #ffffff55 0%, transparent 40%),
+      linear-gradient(180deg, var(--sky) 0%, #BEE9FF 45%, var(--cream) 45%, var(--cream) 100%);
+    min-height:100vh;
+    color:var(--ink);
+    overflow-x:hidden;
+  }
+  h1,h2,.display{font-family:'Jua', sans-serif;}
+
+  /* ---------- Top bar ---------- */
+  #topbar{
+    display:flex; align-items:center; gap:14px;
+    padding:14px 16px;
+    max-width:720px; margin:0 auto;
+  }
+  #mascot{
+    font-size:44px;
+    background:var(--white);
+    border-radius:50%;
+    width:64px; height:64px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 4px 0 #d8d8e6, 0 6px 14px rgba(0,0,0,0.08);
+    flex-shrink:0;
+    animation:bob 2.4s ease-in-out infinite;
+  }
+  @keyframes bob{ 0%,100%{transform:translateY(0) rotate(0deg);} 50%{transform:translateY(-4px) rotate(-3deg);} }
+  #speech{
+    background:var(--white);
+    border-radius:20px;
+    padding:10px 16px;
+    font-size:17px;
+    box-shadow:0 3px 0 #e3ddf2;
+    flex:1;
+    min-height:20px;
+  }
+  #starcount{
+    font-family:'Jua', sans-serif;
+    font-size:20px;
+    background:var(--white);
+    border-radius:20px;
+    padding:8px 14px;
+    box-shadow:0 3px 0 #e3ddf2;
+    white-space:nowrap;
+  }
+
+  main{max-width:720px; margin:0 auto; padding:0 16px 40px;}
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  /* ---------- Home screen ---------- */
+  #home h1{
+    text-align:center;
+    font-size:28px;
+    color:var(--ink);
+    margin:6px 0 22px;
+  }
+  .menu-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+  }
+  .menu-card{
+    border:none;
+    border-radius:24px;
+    padding:22px 12px;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    font-family:'Jua', sans-serif;
+    font-size:17px;
+    color:var(--white);
+    cursor:pointer;
+    box-shadow:0 6px 0 rgba(0,0,0,0.15);
+    transform:translateY(0);
+    transition:transform .08s ease;
+  }
+  .menu-card:active{transform:translateY(5px); box-shadow:0 1px 0 rgba(0,0,0,0.15);}
+  .menu-card .icon{font-size:44px;}
+  .card-1{background:var(--coral);}
+  .card-2{background:var(--sun); color:var(--ink);}
+  .card-3{background:var(--grass);}
+  .card-4{background:var(--grape);}
+  .card-5{background:var(--teal);}
+  .card-6{background:var(--indigo);}
+  .card-7{background:var(--rose);}
+
+  /* ---------- Shared game chrome ---------- */
+  .game-head{display:flex; align-items:center; justify-content:space-between; margin:6px 0 18px;}
+  .back-btn{
+    font-family:'Jua', sans-serif;
+    border:none; background:var(--white); color:var(--ink);
+    border-radius:16px; padding:10px 16px; font-size:16px; cursor:pointer;
+    box-shadow:0 4px 0 #e3ddf2;
+  }
+  .back-btn:active{transform:translateY(3px); box-shadow:none;}
+  .game-title{font-size:20px; margin:0;}
+
+  .stage{
+    background:var(--white);
+    border-radius:28px;
+    padding:26px 16px;
+    box-shadow:0 6px 0 #ecebf5, 0 10px 24px rgba(60,40,90,0.06);
+    min-height:340px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:22px;
+  }
+
+  /* ---------- Shapes (color/shape game) ---------- */
+  .shape{width:88px; height:88px;}
+  .shape.circle{border-radius:50%;}
+  .shape.square{border-radius:14px;}
+  .shape.triangle{clip-path:polygon(50% 0%, 0% 100%, 100% 100%); border-radius:0;}
+  .shape.star{clip-path:polygon(50% 0%,63% 35%,100% 35%,69% 57%,82% 92%,50% 71%,18% 92%,31% 57%,0% 35%,37% 35%);}
+  .shape.diamond{clip-path:polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); border-radius:0;}
+  .shape.heart{
+    clip-path:polygon(50% 90%, 10% 55%, 0% 30%, 15% 5%, 40% 5%, 50% 20%, 60% 5%, 85% 5%, 100% 30%, 90% 55%);
+  }
+  .target-shape{width:110px; height:110px;}
+  .options-row{display:flex; gap:18px; flex-wrap:wrap; justify-content:center;}
+  .shape-btn{
+    border:none; padding:0; background:transparent; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .shape-btn:active .shape{transform:scale(0.9);}
+
+  /* ---------- Number game ---------- */
+  .fruit-row{font-size:44px; letter-spacing:4px; text-align:center; max-width:340px;}
+  .number-row{display:flex; gap:14px; flex-wrap:wrap; justify-content:center;}
+  .num-btn{
+    font-family:'Jua', sans-serif; font-size:30px;
+    width:70px; height:70px; border-radius:20px; border:none;
+    background:var(--sky); color:var(--white); cursor:pointer;
+    box-shadow:0 5px 0 #3fa6cc;
+  }
+  .num-btn:active{transform:translateY(4px); box-shadow:none;}
+
+  /* ---------- Matching game ---------- */
+  .diff-row{display:flex; gap:8px; margin-bottom:14px;}
+  .diff-btn{
+    font-family:'Jua'; font-size:14px; border:none; border-radius:14px;
+    padding:9px 14px; background:#EDE9F7; color:var(--ink); cursor:pointer;
+  }
+  .diff-btn.active{background:var(--grape); color:var(--white);}
+  .match-grid{
+    display:grid; gap:12px;
+    width:100%; max-width:400px;
+  }
+  .match-card{
+    aspect-ratio:1/1;
+    border-radius:16px;
+    background:var(--grape);
+    display:flex; align-items:center; justify-content:center;
+    font-size:32px;
+    cursor:pointer;
+    box-shadow:0 4px 0 #7c53b3;
+  }
+  .match-card.flipped, .match-card.solved{background:var(--white); box-shadow:0 4px 0 #e3ddf2;}
+
+  /* ---------- Draw game ---------- */
+  #drawCanvas{
+    width:100%; aspect-ratio:4/3; background:var(--white);
+    border-radius:20px; touch-action:none; box-shadow:0 4px 0 #e3ddf2;
+  }
+  .palette{display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:14px;}
+  .swatch{width:42px; height:42px; border-radius:50%; border:3px solid var(--white); box-shadow:0 0 0 2px #ddd; cursor:pointer;}
+  .swatch.active{box-shadow:0 0 0 3px var(--ink);}
+  .tool-btn{
+    font-family:'Jua'; font-size:15px; border:none; border-radius:14px;
+    padding:10px 14px; background:var(--ink); color:var(--white); cursor:pointer;
+  }
+  .tool-row{display:flex; gap:10px; justify-content:center; margin-top:10px; flex-wrap:wrap;}
+  .thick-row{display:flex; gap:10px; justify-content:center; margin-top:12px;}
+  .thick-btn{
+    border:2px solid #EDE9F7; background:var(--white); border-radius:14px;
+    padding:8px 14px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .thick-btn.active{border-color:var(--ink);}
+  .thick-dot{background:var(--ink); border-radius:50%;}
+
+  /* ---------- Trace game ---------- */
+  .cat-row{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:14px;}
+  .cat-btn{
+    font-family:'Jua'; font-size:14px; border:none; border-radius:14px;
+    padding:9px 14px; background:#EDE9F7; color:var(--ink); cursor:pointer;
+  }
+  .cat-btn.active{background:var(--teal); color:var(--white);}
+  .trace-nav{display:flex; align-items:center; gap:14px; margin-bottom:12px;}
+  .arrow-btn{
+    font-family:'Jua'; font-size:20px; border:none; border-radius:14px;
+    width:44px; height:44px; background:var(--ink); color:var(--white); cursor:pointer;
+  }
+  #traceLabel{font-family:'Jua'; font-size:18px; min-width:70px; text-align:center;}
+  #traceCanvas{
+    width:100%; max-width:420px; aspect-ratio:1/1; background:var(--white);
+    border-radius:20px; touch-action:none; box-shadow:0 4px 0 #e3ddf2;
+  }
+  .trace-actions{display:flex; gap:10px; justify-content:center; margin-top:14px; flex-wrap:wrap;}
+  .check-btn{
+    font-family:'Jua'; font-size:16px; border:none; border-radius:16px;
+    padding:12px 20px; background:var(--sun); color:var(--ink); cursor:pointer;
+    box-shadow:0 4px 0 #d9ac1f;
+  }
+  .check-btn:active{transform:translateY(3px); box-shadow:none;}
+
+  /* ---------- Puzzle game ---------- */
+  .scene-row{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:10px;}
+  .scene-btn{
+    font-family:'Jua'; font-size:13px; border:none; border-radius:14px;
+    padding:9px 12px; background:#EDE9F7; color:var(--ink); cursor:pointer;
+  }
+  .scene-btn.active{background:var(--indigo); color:var(--white);}
+  .size-row{display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-bottom:14px;}
+  .size-btn{
+    font-family:'Jua'; font-size:13px; border:none; border-radius:12px;
+    width:44px; height:36px; background:#EDE9F7; color:var(--ink); cursor:pointer;
+  }
+  .size-btn.active{background:var(--ink); color:var(--white);}
+  #puzzlePreview{
+    width:100px; height:100px; background-size:cover; background-position:center;
+    border-radius:16px; box-shadow:0 3px 0 #e3ddf2; margin:0 auto 14px;
+  }
+  #puzzleGrid{
+    display:grid; gap:4px;
+    width:100%; max-width:400px; margin:0 auto;
+  }
+  .puzzle-tile{
+    aspect-ratio:1/1; border-radius:6px; cursor:pointer;
+    background-repeat:no-repeat;
+    box-shadow:inset 0 0 0 2px #fff;
+  }
+  .puzzle-tile.selected{box-shadow:inset 0 0 0 4px var(--ink);}
+
+  /* ---------- Piano game ---------- */
+  .octave-row{display:flex; align-items:center; gap:14px; justify-content:center; margin-bottom:20px;}
+  #octaveLabel{font-family:'Jua'; font-size:16px; min-width:110px; text-align:center;}
+  .piano-row{display:flex; gap:8px; justify-content:center; flex-wrap:wrap;}
+  .piano-key{
+    width:52px; height:150px; border:none; border-radius:0 0 14px 14px;
+    color:var(--white); font-family:'Jua'; font-size:16px;
+    display:flex; align-items:flex-end; justify-content:center; padding-bottom:14px;
+    cursor:pointer; box-shadow:0 6px 0 rgba(0,0,0,0.2);
+    transition:transform .05s ease;
+  }
+  .piano-key:active{transform:translateY(5px) scaleY(0.97); box-shadow:0 1px 0 rgba(0,0,0,0.2);}
+
+  /* ---------- Celebration ---------- */
+  #confettiLayer{position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:50;}
+  .confetti{position:absolute; top:-20px; font-size:22px; animation:fall linear forwards;}
+  @keyframes fall{ to{ transform:translateY(110vh) rotate(360deg); opacity:0.9; } }
+
+  #celebrateModal{
+    position:fixed; inset:0; background:rgba(62,49,87,0.55);
+    display:none; align-items:center; justify-content:center; z-index:60;
+  }
+  #celebrateModal.show{display:flex;}
+  .celebrate-box{
+    background:var(--white); border-radius:26px; padding:34px 26px;
+    text-align:center; max-width:280px;
+  }
+  .celebrate-box .big{font-size:60px;}
+  .celebrate-box h2{margin:8px 0 4px; color:var(--ink);}
+  .celebrate-box button{
+    margin-top:14px; font-family:'Jua'; font-size:17px;
+    border:none; background:var(--sun); color:var(--ink);
+    padding:12px 24px; border-radius:16px; cursor:pointer;
+    box-shadow:0 4px 0 #d9ac1f;
+  }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div id="mascot">🐻</div>
+  <div id="speech">안녕! 무슨 놀이를 할까?</div>
+  <div id="starcount">⭐ 0</div>
+</div>
+
+<main>
+
+  <!-- HOME -->
+  <section id="home" class="screen active">
+    <h1>동물 친구들의 놀이터</h1>
+    <div class="menu-grid">
+      <button class="menu-card card-1" onclick="goTo('game-color')">
+        <span class="icon">🎨</span>색깔・모양 찾기
+      </button>
+      <button class="menu-card card-2" onclick="goTo('game-number')">
+        <span class="icon">🍎</span>숫자 세기
+      </button>
+      <button class="menu-card card-3" onclick="goTo('game-match')">
+        <span class="icon">🐣</span>짝꿍 찾기
+      </button>
+      <button class="menu-card card-4" onclick="goTo('game-draw')">
+        <span class="icon">✏️</span>그림 그리기
+      </button>
+      <button class="menu-card card-5" onclick="goTo('game-trace')">
+        <span class="icon">📝</span>글자 따라쓰기
+      </button>
+      <button class="menu-card card-6" onclick="goTo('game-puzzle')">
+        <span class="icon">🧩</span>그림 퍼즐
+      </button>
+      <button class="menu-card card-7" onclick="goTo('game-piano')">
+        <span class="icon">🎹</span>미니 피아노
+      </button>
+    </div>
+  </section>
+
+  <!-- GAME 1: 색깔/모양 찾기 -->
+  <section id="game-color" class="screen">
+    <div class="game-head">
+      <button class="back-btn" onclick="goTo('home')">← 처음으로</button>
+      <h2 class="game-title">색깔・모양 찾기</h2>
+      <span></span>
+    </div>
+    <div class="stage">
+      <div id="colorTarget" class="shape target-shape"></div>
+      <div id="colorOptions" class="options-row"></div>
+    </div>
+  </section>
+
+  <!-- GAME 2: 숫자 세기 -->
+  <section id="game-number" class="screen">
+    <div class="game-head">
+      <button class="back-btn" onclick="goTo('home')">← 처음으로</button>
+      <h2 class="game-title">숫자 세기</h2>
+      <span></span>
+    </div>
+    <div class="stage">
+      <div id="fruitRow" class="fruit-row"></div>
+      <div id="numberOptions" class="number-row"></div>
+    </div>
+  </section>
+
+  <!-- GAME 3: 짝꿍 찾기 -->
+  <section id="game-match" class="screen">
+    <div class="game-head">
+      <button class="back-btn" onclick="goTo('home')">← 처음으로</button>
+      <h2 class="game-title">짝꿍 찾기</h2>
+      <span></span>
+    </div>
+    <div class="stage">
+      <div class="diff-row" id="diffRow"></div>
+      <div id="matchGrid" class="match-grid"></div>
+    </div>
+  </section>
+
+  <!-- GAME 4: 그림 그리기 -->
+  <section id="game-draw" class="screen">
+    <div class="game-head">
+      <button class="back-btn" onclick="goTo('home')">← 처음으로</button>
+      <h2 class="game-title">그림 그리기</h2>
+      <span></span>
+    </div>
+    <div class="stage" style="padding:14px;">
+      <canvas id="drawCanvas" width="600" height="450"></canvas>
+      <div class="palette" id="palette"></div>
+      <div class="thick-row" id="thickRow"></div>
+      <div class="tool-row">
+        <button class="tool-btn" id="eraseBtn">🧽 지우개</button>
+        <button class="tool-btn" onclick="clearCanvas()">🗑️ 전체 지우기</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- GAME 5: 글자 따라쓰기 -->
+  <section id="game-trace" class="screen">
+    <div class="game-head">
+      <button class="back-btn" onclick="goTo('home')">← 처음으로</button>
+      <h2 class="game-title">글자 따라쓰기</h2>
+      <span></span>
+    </div>
+    <div class="stage" style="padding:14px;">
+      <div class="cat-row" id="catRow"></div>
+      <div class="trace-nav">
+        <button class="arrow-btn" onclick="changeLetter(-1)">◀</button>
+        <div id="traceLabel">1 / 14</div>
+        <button class="arrow-btn" onclick="changeLetter(1)">▶</button>
+      </div>
+      <canvas id="traceCanvas" width="480" height="480"></canvas>
+      <div class="palette" id="tracePalette"></div>
+      <div class="trace-actions">
+        <button class="tool-btn" onclick="retryTrace()">🔄 다시 쓰기</button>
+        <button class="check-btn" onclick="checkTrace()">✅ 확인!</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- GAME 6: 그림 퍼즐 -->
+  <section id="game-puzzle" class="screen">
+    <div class="game-head">
+      <button class="back-btn" onclick="goTo('home')">← 처음으로</button>
+      <h2 class="game-title">그림 퍼즐</h2>
+      <span></span>
+    </div>
+    <div class="stage" style="padding:14px;">
+      <div class="scene-row" id="sceneRow"></div>
+      <div class="size-row" id="sizeRow"></div>
+      <div id="puzzlePreview"></div>
+      <div id="puzzleGrid"></div>
+    </div>
+  </section>
+
+  <!-- GAME 7: 미니 피아노 -->
+  <section id="game-piano" class="screen">
+    <div class="game-head">
+      <button class="back-btn" onclick="goTo('home')">← 처음으로</button>
+      <h2 class="game-title">미니 피아노</h2>
+      <span></span>
+    </div>
+    <div class="stage" style="padding:20px 14px;">
+      <div class="octave-row">
+        <button class="arrow-btn" id="octaveDownBtn" onclick="changeOctave(-1)">◀</button>
+        <div id="octaveLabel">보통 옥타브</div>
+        <button class="arrow-btn" id="octaveUpBtn" onclick="changeOctave(1)">▶</button>
+      </div>
+      <div class="piano-row" id="pianoRow"></div>
+    </div>
+  </section>
+
+</main>
+
+<div id="confettiLayer"></div>
+<div id="celebrateModal">
+  <div class="celebrate-box">
+    <div class="big">🎉🐻🎉</div>
+    <h2>참 잘했어요!</h2>
+    <p>별을 5개 모았어요!</p>
+    <button onclick="closeCelebrate()">계속 놀기</button>
+  </div>
+</div>
+
+<script>
+/* ================= 공통 ================= */
+let stars = 0;
+const speechEl = document.getElementById('speech');
+const starEl = document.getElementById('starcount');
+const mascotEl = document.getElementById('mascot');
+
+function say(msg){ speechEl.textContent = msg; }
+
+function addStar(){
+  stars++;
+  starEl.textContent = '⭐ ' + stars;
+  bounceMascot();
+  if(stars % 5 === 0){
+    setTimeout(()=>{ document.getElementById('celebrateModal').classList.add('show'); burstConfetti(30); }, 400);
+  }
+}
+function closeCelebrate(){ document.getElementById('celebrateModal').classList.remove('show'); }
+
+function bounceMascot(){
+  mascotEl.style.animation = 'none';
+  mascotEl.textContent = '🐻';
+  void mascotEl.offsetWidth;
+  mascotEl.style.animation = 'bob 0.5s ease-in-out 2';
+}
+
+function burstConfetti(n){
+  const layer = document.getElementById('confettiLayer');
+  const emojis = ['🎉','⭐','🎈','✨','🌟'];
+  for(let i=0;i<n;i++){
+    const el = document.createElement('div');
+    el.className = 'confetti';
+    el.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    el.style.left = Math.random()*100 + 'vw';
+    el.style.animationDuration = (2 + Math.random()*1.5) + 's';
+    el.style.fontSize = (16 + Math.random()*16) + 'px';
+    layer.appendChild(el);
+    setTimeout(()=>el.remove(), 4000);
+  }
+}
+
+const screens = ['home','game-color','game-number','game-match','game-draw','game-trace','game-puzzle','game-piano'];
+function goTo(id){
+  screens.forEach(s=>document.getElementById(s).classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='home') say('안녕! 무슨 놀이를 할까?');
+  if(id==='game-color') newColorRound();
+  if(id==='game-number') newNumberRound();
+  if(id==='game-match') newMatchRound();
+  if(id==='game-draw') say('마음대로 그려보자!');
+  if(id==='game-trace') loadTraceLetter();
+  if(id==='game-puzzle') startPuzzle();
+  if(id==='game-piano') { say('건반을 눌러 소리를 들어보자!'); }
+}
+
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+/* ================= 게임 1: 색깔・모양 찾기 ================= */
+const PALETTE = [
+  {name:'빨강', color:'#FF6B6B'},
+  {name:'파랑', color:'#4D96FF'},
+  {name:'노랑', color:'#FFD34D'},
+  {name:'초록', color:'#6BCB77'},
+  {name:'보라', color:'#9B72CF'},
+  {name:'주황', color:'#FF9F45'},
+  {name:'분홍', color:'#FF7AC6'},
+  {name:'하늘', color:'#4DD0E1'}
+];
+const SHAPES = ['circle','square','triangle','star','diamond','heart'];
+
+function makeShapeDiv(shape, color){
+  const d = document.createElement('div');
+  d.className = 'shape ' + shape;
+  d.style.background = color;
+  return d;
+}
+
+function newColorRound(){
+  const mode = Math.random() < 0.5 ? 'color' : 'shape';
+  const targetColor = pick(PALETTE);
+  const targetShape = pick(SHAPES);
+
+  const targetEl = document.getElementById('colorTarget');
+  targetEl.className = 'shape target-shape ' + targetShape;
+  targetEl.style.background = targetColor.color;
+
+  say(mode === 'color' ? '같은 색깔을 찾아볼까?' : '같은 모양을 찾아볼까?');
+
+  const correctIndex = Math.floor(Math.random()*3);
+  const opts = [];
+  for(let i=0;i<3;i++){
+    if(i === correctIndex){
+      if(mode === 'color'){
+        opts.push({shape: pick(SHAPES.filter(s=>s!==targetShape)) || targetShape, color: targetColor.color});
+      } else {
+        opts.push({shape: targetShape, color: pick(PALETTE.filter(c=>c.color!==targetColor.color)).color});
+      }
+    } else {
+      let s, c;
+      do{
+        s = pick(SHAPES);
+        c = pick(PALETTE).color;
+      } while( (mode==='color' && c===targetColor.color) || (mode==='shape' && s===targetShape) );
+      opts.push({shape:s, color:c});
+    }
+  }
+
+  const row = document.getElementById('colorOptions');
+  row.innerHTML = '';
+  opts.forEach((o, idx)=>{
+    const btn = document.createElement('button');
+    btn.className = 'shape-btn';
+    btn.appendChild(makeShapeDiv(o.shape, o.color));
+    btn.onclick = ()=>{
+      if(idx === correctIndex){
+        say('정답! 참 잘했어요 🎉');
+        addStar();
+        setTimeout(newColorRound, 700);
+      } else {
+        say('음... 다시 한번 찾아볼까?');
+      }
+    };
+    row.appendChild(btn);
+  });
+}
+
+/* ================= 게임 2: 숫자 세기 ================= */
+const FRUITS = ['🍎','🍌','🍇','🍓','🍊','🍉','🍒','🍑'];
+function newNumberRound(){
+  const count = Math.floor(Math.random()*8)+1; // 1~8
+  const fruit = pick(FRUITS);
+  document.getElementById('fruitRow').textContent = fruit.repeat(count);
+  say('과일이 몇 개일까요?');
+
+  let options = new Set([count]);
+  while(options.size < 3){
+    const n = Math.floor(Math.random()*8)+1;
+    options.add(n);
+  }
+  options = shuffle([...options]);
+
+  const row = document.getElementById('numberOptions');
+  row.innerHTML = '';
+  options.forEach(n=>{
+    const btn = document.createElement('button');
+    btn.className = 'num-btn';
+    btn.textContent = n;
+    btn.onclick = ()=>{
+      if(n === count){
+        say('정답이에요! 참 잘했어요 🎉');
+        addStar();
+        setTimeout(newNumberRound, 700);
+      } else {
+        say('다시 세어볼까?');
+      }
+    };
+    row.appendChild(btn);
+  });
+}
+
+/* ================= 게임 3: 짝꿍 찾기 ================= */
+const ANIMALS = ['🐶','🐱','🐰','🐻','🐸','🐵','🦁','🐼','🐷','🐨','🐯','🦊'];
+let matchState = { cards:[], flipped:[], solvedCount:0, locked:false, pairs:3 };
+
+function setMatchDifficulty(pairs){
+  matchState.pairs = pairs;
+  [...document.getElementById('diffRow').children].forEach(b=>{
+    b.classList.toggle('active', Number(b.dataset.pairs) === pairs);
+  });
+  newMatchRound();
+}
+
+function newMatchRound(){
+  const pairs = matchState.pairs;
+  const chosen = shuffle([...ANIMALS]).slice(0, pairs);
+  const deck = shuffle([...chosen, ...chosen]);
+  matchState.cards = deck; matchState.flipped = []; matchState.solvedCount = 0; matchState.locked = false;
+  say('같은 동물 짝을 찾아보자!');
+
+  const grid = document.getElementById('matchGrid');
+  grid.style.gridTemplateColumns = pairs <= 3 ? 'repeat(3, 1fr)' : 'repeat(4, 1fr)';
+  grid.innerHTML = '';
+  deck.forEach((animal, idx)=>{
+    const card = document.createElement('div');
+    card.className = 'match-card';
+    card.dataset.idx = idx;
+    card.dataset.animal = animal;
+    card.textContent = '❓';
+    card.onclick = ()=>flipCard(card);
+    grid.appendChild(card);
+  });
+}
+
+function flipCard(card){
+  if(matchState.locked) return;
+  if(card.classList.contains('flipped') || card.classList.contains('solved')) return;
+  if(matchState.flipped.length === 2) return;
+
+  card.classList.add('flipped');
+  card.textContent = card.dataset.animal;
+  matchState.flipped.push(card);
+
+  if(matchState.flipped.length === 2){
+    matchState.locked = true;
+    const [a,b] = matchState.flipped;
+    if(a.dataset.animal === b.dataset.animal){
+      a.classList.add('solved'); b.classList.add('solved');
+      matchState.solvedCount++;
+      say('짝을 찾았어요! 🎉');
+      addStar();
+      matchState.flipped = [];
+      matchState.locked = false;
+      if(matchState.solvedCount === matchState.pairs){
+        say('모든 짝을 다 찾았어요!');
+        setTimeout(newMatchRound, 1200);
+      }
+    } else {
+      say('아쉬워요, 다시 찾아볼까?');
+      setTimeout(()=>{
+        a.classList.remove('flipped'); a.textContent='❓';
+        b.classList.remove('flipped'); b.textContent='❓';
+        matchState.flipped = [];
+        matchState.locked = false;
+      }, 900);
+    }
+  }
+}
+
+const diffRow = document.getElementById('diffRow');
+[{label:'쉬움 (3쌍)', pairs:3},{label:'어려움 (6쌍)', pairs:6}].forEach(d=>{
+  const btn = document.createElement('button');
+  btn.className = 'diff-btn' + (d.pairs===3 ? ' active' : '');
+  btn.textContent = d.label;
+  btn.dataset.pairs = d.pairs;
+  btn.onclick = ()=>setMatchDifficulty(d.pairs);
+  diffRow.appendChild(btn);
+});
+
+/* ================= 게임 4: 그림 그리기 ================= */
+const canvas = document.getElementById('drawCanvas');
+const ctx = canvas.getContext('2d');
+let drawing = false;
+let currentColor = '#3E3157';
+let brushSize = 14;
+let erasing = false;
+
+function resizeCanvasBackdrop(){
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0,0,canvas.width, canvas.height);
+}
+resizeCanvasBackdrop();
+
+function getPos(e, cv){
+  const rect = cv.getBoundingClientRect();
+  const scaleX = cv.width / rect.width;
+  const scaleY = cv.height / rect.height;
+  const point = e.touches ? e.touches[0] : e;
+  return { x: (point.clientX - rect.left) * scaleX, y: (point.clientY - rect.top) * scaleY };
+}
+
+function startDraw(e){
+  drawing = true;
+  const p = getPos(e, canvas);
+  ctx.beginPath();
+  ctx.moveTo(p.x, p.y);
+  e.preventDefault();
+}
+function moveDraw(e){
+  if(!drawing) return;
+  const p = getPos(e, canvas);
+  ctx.lineWidth = erasing ? brushSize + 14 : brushSize;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = erasing ? '#FFFFFF' : currentColor;
+  ctx.lineTo(p.x, p.y);
+  ctx.stroke();
+  e.preventDefault();
+}
+function endDraw(){ drawing = false; }
+
+canvas.addEventListener('mousedown', startDraw);
+canvas.addEventListener('mousemove', moveDraw);
+window.addEventListener('mouseup', endDraw);
+canvas.addEventListener('touchstart', startDraw, {passive:false});
+canvas.addEventListener('touchmove', moveDraw, {passive:false});
+canvas.addEventListener('touchend', endDraw);
+
+function clearCanvas(){ resizeCanvasBackdrop(); say('깨끗해졌어요!'); }
+
+const paletteEl = document.getElementById('palette');
+const DRAW_COLORS = ['#3E3157','#FF6B6B','#4D96FF','#FFD34D','#6BCB77','#9B72CF','#FF9F45','#FF7AC6'];
+DRAW_COLORS.forEach((c, i)=>{
+  const sw = document.createElement('div');
+  sw.className = 'swatch' + (i===0 ? ' active' : '');
+  sw.style.background = c;
+  sw.onclick = ()=>{
+    currentColor = c;
+    erasing = false;
+    document.getElementById('eraseBtn').style.outline = 'none';
+    [...paletteEl.children].forEach(el=>el.classList.remove('active'));
+    sw.classList.add('active');
+  };
+  paletteEl.appendChild(sw);
+});
+
+const thickRow = document.getElementById('thickRow');
+const THICKNESSES = [{label:'얇게', size:6, dot:12},{label:'보통', size:14, dot:18},{label:'굵게', size:24, dot:24}];
+THICKNESSES.forEach((t,i)=>{
+  const btn = document.createElement('button');
+  btn.className = 'thick-btn' + (i===1 ? ' active' : '');
+  const dot = document.createElement('div');
+  dot.className = 'thick-dot';
+  dot.style.width = t.dot + 'px'; dot.style.height = t.dot + 'px';
+  btn.appendChild(dot);
+  btn.title = t.label;
+  btn.onclick = ()=>{
+    brushSize = t.size;
+    [...thickRow.children].forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  };
+  thickRow.appendChild(btn);
+});
+
+document.getElementById('eraseBtn').onclick = ()=>{
+  erasing = !erasing;
+  document.getElementById('eraseBtn').style.outline = erasing ? '3px solid #3E3157' : 'none';
+};
+
+/* ================= 게임 5: 글자 따라쓰기 ================= */
+const LETTER_SETS = {
+  '자음': ['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'],
+  '모음': ['ㅏ','ㅑ','ㅓ','ㅕ','ㅗ','ㅛ','ㅜ','ㅠ','ㅡ','ㅣ'],
+  '대문자': ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'],
+  '소문자': ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
+};
+const CAT_KEYS = ['자음','모음','대문자','소문자'];
+
+const traceCanvas = document.getElementById('traceCanvas');
+const tCtx = traceCanvas.getContext('2d');
+const TW = traceCanvas.width, TH = traceCanvas.height;
+const BAND = 46;
+const FONT_SIZE = 220;
+
+const maskCanvas = document.createElement('canvas');
+maskCanvas.width = TW; maskCanvas.height = TH;
+const mCtx = maskCanvas.getContext('2d');
+
+let traceState = { cat:'자음', idx:0, letter:'ㄱ', outside:false, drawing:false, color:'#9B72CF' };
+let maskData = null;
+
+function fontStringFor(letter){
+  return FONT_SIZE + "px 'Jua', sans-serif";
+}
+
+function buildMask(letter){
+  mCtx.clearRect(0,0,TW,TH);
+  mCtx.lineWidth = BAND;
+  mCtx.strokeStyle = '#000000';
+  mCtx.font = fontStringFor(letter);
+  mCtx.textAlign = 'center';
+  mCtx.textBaseline = 'middle';
+  mCtx.strokeText(letter, TW/2, TH/2);
+  maskData = mCtx.getImageData(0,0,TW,TH).data;
+}
+
+function isInsideMask(x,y){
+  x = Math.round(x); y = Math.round(y);
+  if(x<0||y<0||x>=TW||y>=TH) return false;
+  const idx = (y*TW + x) * 4 + 3;
+  return maskData[idx] > 10;
+}
+
+function drawGuideVisible(letter){
+  tCtx.clearRect(0,0,TW,TH);
+  tCtx.fillStyle = '#FFFFFF';
+  tCtx.fillRect(0,0,TW,TH);
+
+  tCtx.font = fontStringFor(letter);
+  tCtx.textAlign = 'center';
+  tCtx.textBaseline = 'middle';
+
+  tCtx.lineWidth = BAND;
+  tCtx.strokeStyle = 'rgba(255,211,77,0.45)';
+  tCtx.setLineDash([]);
+  tCtx.strokeText(letter, TW/2, TH/2);
+
+  tCtx.setLineDash([16,14]);
+  tCtx.lineWidth = 6;
+  tCtx.strokeStyle = '#9B72CF';
+  tCtx.strokeText(letter, TW/2, TH/2);
+  tCtx.setLineDash([]);
+}
+
+function loadTraceLetter(){
+  traceState.letter = LETTER_SETS[traceState.cat][traceState.idx];
+  buildMask(traceState.letter);
+  drawGuideVisible(traceState.letter);
+  traceState.outside = false;
+  document.getElementById('traceLabel').textContent = (traceState.idx+1) + ' / ' + LETTER_SETS[traceState.cat].length;
+  say('점선을 따라 예쁘게 그려볼까?');
+}
+
+function changeLetter(delta){
+  const len = LETTER_SETS[traceState.cat].length;
+  traceState.idx = (traceState.idx + delta + len) % len;
+  loadTraceLetter();
+}
+
+function retryTrace(){
+  drawGuideVisible(traceState.letter);
+  traceState.outside = false;
+  say('다시 한번 그려보자!');
+}
+
+function checkTrace(){
+  if(!traceState.outside){
+    say('참 잘했어요! 테두리 안에 예쁘게 썼어요 🎉');
+    addStar();
+    setTimeout(()=>changeLetter(1), 800);
+  } else {
+    say('테두리 안에 그려볼까? 다시 해보자!');
+    setTimeout(retryTrace, 900);
+  }
+}
+
+function traceGetPos(e){ return getPos(e, traceCanvas); }
+
+function checkPoint(p){
+  if(!isInsideMask(p.x, p.y)) traceState.outside = true;
+}
+
+function traceStart(e){
+  traceState.drawing = true;
+  const p = traceGetPos(e);
+  tCtx.beginPath();
+  tCtx.moveTo(p.x, p.y);
+  checkPoint(p);
+  e.preventDefault();
+}
+function traceMove(e){
+  if(!traceState.drawing) return;
+  const p = traceGetPos(e);
+  tCtx.lineWidth = 16;
+  tCtx.lineCap = 'round';
+  tCtx.lineJoin = 'round';
+  tCtx.strokeStyle = traceState.color;
+  tCtx.lineTo(p.x, p.y);
+  tCtx.stroke();
+  checkPoint(p);
+  e.preventDefault();
+}
+function traceEnd(){ traceState.drawing = false; }
+
+traceCanvas.addEventListener('mousedown', traceStart);
+traceCanvas.addEventListener('mousemove', traceMove);
+window.addEventListener('mouseup', traceEnd);
+traceCanvas.addEventListener('touchstart', traceStart, {passive:false});
+traceCanvas.addEventListener('touchmove', traceMove, {passive:false});
+traceCanvas.addEventListener('touchend', traceEnd);
+
+const catRow = document.getElementById('catRow');
+CAT_KEYS.forEach(key=>{
+  const btn = document.createElement('button');
+  let label = '한글 ' + key;
+  if(key==='대문자') label = '영어 대문자';
+  if(key==='소문자') label = '영어 소문자';
+  btn.className = 'cat-btn' + (key===traceState.cat ? ' active' : '');
+  btn.textContent = label;
+  btn.onclick = ()=>{
+    traceState.cat = key;
+    traceState.idx = 0;
+    [...catRow.children].forEach(el=>el.classList.remove('active'));
+    btn.classList.add('active');
+    loadTraceLetter();
+  };
+  catRow.appendChild(btn);
+});
+
+const tracePaletteEl = document.getElementById('tracePalette');
+const TRACE_COLORS = ['#9B72CF','#FF6B6B','#4D96FF','#6BCB77','#FF9F45'];
+TRACE_COLORS.forEach((c, i)=>{
+  const sw = document.createElement('div');
+  sw.className = 'swatch' + (i===0 ? ' active' : '');
+  sw.style.background = c;
+  sw.onclick = ()=>{
+    traceState.color = c;
+    [...tracePaletteEl.children].forEach(el=>el.classList.remove('active'));
+    sw.classList.add('active');
+  };
+  tracePaletteEl.appendChild(sw);
+});
+
+/* ================= 게임 6: 그림 퍼즐 ================= */
+const PUZZLE_SCENES = [
+  {name:'강아지 공원', top:'#8ED1FC', bottom:'#8BC34A', char:'🐶', deco:['☀️','🌳','🌳']},
+  {name:'바닷속 친구', top:'#4FC3F7', bottom:'#0277BD', char:'🐠', deco:['🫧','🫧','🐚']},
+  {name:'우주 탐험', top:'#232352', bottom:'#4B4B8F', char:'🚀', deco:['⭐','⭐','🌙']},
+  {name:'초원의 사자', top:'#FFE29A', bottom:'#D2A24C', char:'🦁', deco:['☁️','☁️']}
+];
+
+const PS = 480;
+const pCanvas = document.createElement('canvas');
+pCanvas.width = PS; pCanvas.height = PS;
+const pCtx = pCanvas.getContext('2d');
+
+let puzzleState = { sceneIdx:0, n:3, order:[], selected:-1, sceneUrl:'' };
+
+function buildScene(scene){
+  const grad = pCtx.createLinearGradient(0,0,0,PS);
+  grad.addColorStop(0, scene.top);
+  grad.addColorStop(1, scene.bottom);
+  pCtx.fillStyle = grad;
+  pCtx.fillRect(0,0,PS,PS);
+
+  pCtx.textAlign = 'center';
+  pCtx.textBaseline = 'middle';
+  pCtx.font = '46px sans-serif';
+  scene.deco.forEach((emoji, i)=>{
+    const x = 70 + i * 150;
+    const y = 55 + (i % 2) * 34;
+    pCtx.fillText(emoji, x, y);
+  });
+
+  pCtx.font = '230px sans-serif';
+  pCtx.fillText(scene.char, PS/2, PS/2 + 20);
+
+  return pCanvas.toDataURL();
+}
+
+function startPuzzle(){
+  const scene = PUZZLE_SCENES[puzzleState.sceneIdx];
+  puzzleState.sceneUrl = buildScene(scene);
+  document.getElementById('puzzlePreview').style.backgroundImage = `url(${puzzleState.sceneUrl})`;
+
+  const n = puzzleState.n;
+  let order = [...Array(n*n).keys()];
+  if(n > 1){
+    do{ shuffle(order); } while(order.every((v,i)=>v===i));
+  }
+  puzzleState.order = order;
+  puzzleState.selected = -1;
+  renderPuzzleGrid();
+  say('조각을 두 개씩 눌러서 그림을 맞춰보자!');
+}
+
+function renderPuzzleGrid(){
+  const n = puzzleState.n;
+  const grid = document.getElementById('puzzleGrid');
+  grid.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
+  grid.innerHTML = '';
+  puzzleState.order.forEach((homeId, pos)=>{
+    const col = homeId % n;
+    const row = Math.floor(homeId / n);
+    const div = document.createElement('div');
+    div.className = 'puzzle-tile' + (pos === puzzleState.selected ? ' selected' : '');
+    div.style.backgroundImage = `url(${puzzleState.sceneUrl})`;
+    div.style.backgroundSize = `${n*100}% ${n*100}%`;
+    div.style.backgroundPosition = n > 1
+      ? `${col/(n-1)*100}% ${row/(n-1)*100}%`
+      : '0 0';
+    div.onclick = ()=>tapPuzzleTile(pos);
+    grid.appendChild(div);
+  });
+}
+
+function tapPuzzleTile(pos){
+  if(puzzleState.selected === -1){
+    puzzleState.selected = pos;
+  } else if(puzzleState.selected === pos){
+    puzzleState.selected = -1;
+  } else {
+    const o = puzzleState.order;
+    const s = puzzleState.selected;
+    [o[s], o[pos]] = [o[pos], o[s]];
+    puzzleState.selected = -1;
+    if(o.every((v,i)=>v===i)){
+      say('완성했어요! 참 잘했어요 🎉');
+      addStar();
+      setTimeout(()=>burstConfetti(20), 150);
+    }
+  }
+  renderPuzzleGrid();
+}
+
+const sceneRow = document.getElementById('sceneRow');
+PUZZLE_SCENES.forEach((scene, i)=>{
+  const btn = document.createElement('button');
+  btn.className = 'scene-btn' + (i===0 ? ' active' : '');
+  btn.textContent = scene.char + ' ' + scene.name;
+  btn.onclick = ()=>{
+    puzzleState.sceneIdx = i;
+    [...sceneRow.children].forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    startPuzzle();
+  };
+  sceneRow.appendChild(btn);
+});
+
+const sizeRow = document.getElementById('sizeRow');
+for(let n=2; n<=7; n++){
+  const btn = document.createElement('button');
+  btn.className = 'size-btn' + (n===3 ? ' active' : '');
+  btn.textContent = n + '×' + n;
+  btn.onclick = ()=>{
+    puzzleState.n = n;
+    [...sizeRow.children].forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    startPuzzle();
+  };
+  sizeRow.appendChild(btn);
+}
+
+/* ================= 게임 7: 미니 피아노 ================= */
+let audioCtx = null;
+function ensureAudio(){
+  if(!audioCtx){
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+// 기준: C4 = 261.6256Hz. octave 4가 기본(가운데) 옥타브.
+const NOTES = [
+  {label:'도', semi:0,  color:'#FF6B6B'},
+  {label:'레', semi:2,  color:'#FF9F45'},
+  {label:'미', semi:4,  color:'#FFD34D'},
+  {label:'파', semi:5,  color:'#6BCB77'},
+  {label:'솔', semi:7,  color:'#4DD0E1'},
+  {label:'라', semi:9,  color:'#4D96FF'},
+  {label:'시', semi:11, color:'#9B72CF'},
+  {label:'도', semi:12, color:'#FF7AC6'}
+];
+
+let pianoState = { octave:4 };
+const OCTAVE_LABELS = { 3:'낮은 옥타브 🐢', 4:'보통 옥타브 🎵', 5:'높은 옥타브 🐦' };
+
+function playNote(semi){
+  ensureAudio();
+  const freq = 261.6256 * Math.pow(2, semi/12 + (pianoState.octave - 4));
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'triangle';
+  osc.frequency.value = freq;
+  const t = audioCtx.currentTime;
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.exponentialRampToValueAtTime(0.32, t + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(t);
+  osc.stop(t + 0.75);
+}
+
+function updateOctaveUI(){
+  document.getElementById('octaveLabel').textContent = OCTAVE_LABELS[pianoState.octave];
+  document.getElementById('octaveDownBtn').disabled = pianoState.octave <= 3;
+  document.getElementById('octaveUpBtn').disabled = pianoState.octave >= 5;
+}
+
+function changeOctave(delta){
+  const next = pianoState.octave + delta;
+  if(next < 3 || next > 5) return;
+  pianoState.octave = next;
+  updateOctaveUI();
+  say('옥타브를 바꿨어요! 소리를 들어볼까?');
+}
+
+const pianoRow = document.getElementById('pianoRow');
+NOTES.forEach(note=>{
+  const key = document.createElement('button');
+  key.className = 'piano-key';
+  key.style.background = note.color;
+  key.textContent = note.label;
+  key.onclick = ()=>{
+    playNote(note.semi);
+    key.style.transform = 'translateY(5px) scaleY(0.97)';
+    setTimeout(()=>{ key.style.transform = ''; }, 120);
+  };
+  pianoRow.appendChild(key);
+});
+updateOctaveUI();
+
+</script>
+</body>
+</html>
